@@ -29,6 +29,7 @@ TelloDriver::TelloDriver() : Node("tello_driver")
 
   // Parameters
   std::string drone_ip;
+  std::string drone_interface_ip;
   int drone_port;
   int command_port;
   int data_port;
@@ -37,19 +38,28 @@ TelloDriver::TelloDriver() : Node("tello_driver")
   get_parameter_or("drone_ip", drone_ip, std::string("192.168.10.1"));
   get_parameter_or("drone_port", drone_port, 8889);
 
+  get_parameter_or("drone_interface_ip", drone_interface_ip, std::string("192.168.10.2"));
+
   get_parameter_or("command_port", command_port, 38065);
   get_parameter_or("data_port", data_port, 8890);
   get_parameter_or("video_port", video_port, 11111);
 
   RCLCPP_INFO(get_logger(), "Drone at %s:%d", drone_ip.c_str(), drone_port);
+  RCLCPP_INFO(get_logger(), "Drone-Device interface ip address: %s", drone_interface_ip.c_str());
   RCLCPP_INFO(get_logger(), "Listening for command responses on localhost:%d", command_port);
   RCLCPP_INFO(get_logger(), "Listening for data on localhost:%d", data_port);
   RCLCPP_INFO(get_logger(), "Listening for video on localhost:%d", video_port);
 
   // Sockets
-  command_socket_ = std::make_unique<CommandSocket>(this, drone_ip, drone_port, command_port);
-  state_socket_ = std::make_unique<StateSocket>(this, data_port);
-  video_socket_ = std::make_unique<VideoSocket>(this, video_port);
+  command_socket_ = std::make_unique<CommandSocket>(this, drone_ip, drone_port, command_port, drone_interface_ip);
+  state_socket_ = std::make_unique<StateSocket>(this, data_port, drone_interface_ip);
+  video_socket_ = std::make_unique<VideoSocket>(this, video_port, drone_interface_ip);
+
+
+  RCLCPP_INFO(get_logger(), "Adress command_socket_ %s", command_socket_->get_socket_address().c_str());
+
+
+
 }
 
 TelloDriver::~TelloDriver()

@@ -3,8 +3,8 @@
 namespace tello_driver {
 
 CommandSocket::CommandSocket(TelloDriver *driver, std::string drone_ip,
-  unsigned short drone_port, unsigned short command_port) :
-  TelloSocket(driver, command_port),
+  unsigned short drone_port, unsigned short command_port, std::string drone_iface_ip) :
+  TelloSocket(driver, command_port, drone_iface_ip),
   remote_endpoint_(asio::ip::address_v4::from_string(drone_ip), drone_port),
   send_time_(rclcpp::Time(0L, RCL_ROS_TIME))
 {
@@ -80,5 +80,10 @@ void CommandSocket::process_packet(size_t r)
     RCLCPP_WARN(driver_->get_logger(), "Unexpected '%s'", str.c_str());
   }
 }
+
+std::string CommandSocket::get_socket_address() {
+    return remote_endpoint_.address().to_string();
+}
+
 
 } // namespace tello_driver

@@ -11,6 +11,7 @@
 #include "h264decoder.hpp"
 
 using asio::ip::udp;
+using namespace asio::ip;
 
 namespace tello_driver {
 
@@ -81,8 +82,13 @@ class TelloSocket
 {
 public:
 
-  TelloSocket(TelloDriver *driver, unsigned short port) : driver_(driver),
-    socket_(io_service_, udp::endpoint(udp::v4(), port)) {}
+  TelloSocket(TelloDriver *driver, unsigned short port, std::string drone_iface_ip) : driver_(driver),
+    socket_(io_service_) {
+      udp::endpoint ep(address::from_string(drone_iface_ip), port);
+      socket_.open(ep.protocol());
+      socket_.set_option(udp::socket::reuse_address(true));
+      socket_.bind(ep);
+    }
 
   bool receiving();
   rclcpp::Time receive_time();
@@ -111,12 +117,14 @@ class CommandSocket : public TelloSocket
 {
 public:
 
-  CommandSocket(TelloDriver *driver, std::string drone_ip, unsigned short drone_port, unsigned short command_port);
+  CommandSocket(TelloDriver *driver, std::string drone_ip, unsigned short drone_port, unsigned short command_port, std::string drone_iface_ip);
 
   void timeout() override;
   bool waiting();
   rclcpp::Time send_time();
   void initiate_command(std::string command, bool respond);
+
+  std::string get_socket_address();
 
 private:
 
@@ -138,7 +146,7 @@ class StateSocket : public TelloSocket
 {
 public:
 
-  StateSocket(TelloDriver *driver, unsigned short data_port);
+  StateSocket(TelloDriver *driver, unsigned short data_port, std::string drone_iface_ip);
 
 private:
 
@@ -155,7 +163,7 @@ class VideoSocket : public TelloSocket
 {
 public:
 
-  VideoSocket(TelloDriver *driver, unsigned short video_port);
+  VideoSocket(TelloDriver *driver, unsigned short video_port, std::string drone_iface_ip);
 
 private:
 
