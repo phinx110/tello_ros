@@ -86,8 +86,8 @@ void VideoSocket::decode_frames()
         cv::Mat mat{frame.height, frame.width, CV_8UC3, bgr24};
 
         // Display
-        cv::imshow("frame", mat);
-        cv::waitKey(1);
+        //cv::imshow("frame", mat);
+        //cv::waitKey(1);
 
         // Synchronize ROS messages
         auto stamp = driver_->now();
